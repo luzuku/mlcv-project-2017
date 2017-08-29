@@ -70,6 +70,7 @@ def main(small_intermediate_indices, big_intermediate_indices, batch_size, hard_
     print('Batch size: %d'%(batch_size))
     print('Hard factor: %f'%(hard_factor))
     print('Logit factor: %f'%(logit_factor))
+    print('Temperature: %f'%(temperature))
     print('Soft factor: %f'%(soft_factor))
     print('Weight decay: %f'%(weight_decay))
     print('Number of epochs: %d'%(num_epochs))

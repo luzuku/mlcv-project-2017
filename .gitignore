@@ -1,5 +1,6 @@
 # User defined
-modelBigStateDict
+modelBig*
+modelSmall*
 data/
 transfer_results_batch32.txt
 .DS_Store

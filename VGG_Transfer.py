@@ -59,7 +59,7 @@ def intermediateModulesFromIndices(model, indices):
 
 
 def main(small_intermediate_indices, big_intermediate_indices, batch_size, hard_factor = .2, logit_factor = 1, soft_factor = 1, 
-         temperature = 1.0, weight_decay = .5e-4, num_epochs = 25, nLearningDecay = 7, testBigModel = False, filename = None):
+         temperature = 1.0, weight_decay = .5e-4, num_epochs = 25, nLearningDecay = 7, testBigModel = False, filename = None, optim_mode = "ADAM"):
     
     if filename != None:
         file = open(filename, 'w')
@@ -190,8 +190,12 @@ def main(small_intermediate_indices, big_intermediate_indices, batch_size, hard_
 
         return optimizer
     
-    #optimizer = optim.SGD(model_small.parameters(), lr=0.0001 * batch_size, momentum=0.9)
-    optimizer = optim.Adam(model_small.parameters(), lr = 0.0001 * batch_size, weight_decay=args.regularization)
+    if optim_mode == "SGD" :
+        optimizer = optim.SGD(model_small.parameters(), lr=0.0001 * batch_size, momentum=0.9)
+        print("using SGD optimizer")
+    else:
+        optimizer = optim.Adam(model_small.parameters(), lr = 0.0001 * batch_size, weight_decay=args.regularization)
+        print("using ADAM optimizer")
 
     lr_scheduler = exp_lr_scheduler
 
@@ -337,4 +341,4 @@ if __name__ == "__main__":
     big_intermediate_indices = [[],[]]
 
     main(small_intermediate_indices, big_intermediate_indices, args.batchSize, args.hardFactor, args.logitFactor, args.softFactor,
-         args.temperature, args.regularization, args.nEpochs, args.nLearningDecay, False, False)
+         args.temperature, args.regularization, args.nEpochs, args.nLearningDecay, False, None)

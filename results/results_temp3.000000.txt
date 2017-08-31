@@ -1,0 +1,69 @@
+Execution started: 
+16:57:53.493086
+Batch size: 100
+Hard factor: 1.000000
+Logit factor: 10.000000
+Temperature: 3.000000
+Soft factor: 0.000000
+Weight decay: 0.000020
+Number of epochs: 25
+Epochs between LR decay: 10
+Files already downloaded and verified
+Files already downloaded and verified
+Big model initialized
+Small model initialized
+using SGD optimizer
+LR is set to 0.01
+Epoch 0/24, Training: Loss = -0.0100 Acc = 0.4315
+Epoch 0/24, Testing: Loss = 0.0473 Acc = 0.5656
+Epoch 1/24, Training: Loss = -0.0348 Acc = 0.6451
+Epoch 1/24, Testing: Loss = 0.1219 Acc = 0.6841
+Epoch 2/24, Training: Loss = -0.0520 Acc = 0.7596
+Epoch 2/24, Testing: Loss = 0.2022 Acc = 0.7392
+Epoch 3/24, Training: Loss = -0.0663 Acc = 0.8488
+Epoch 3/24, Testing: Loss = 0.2184 Acc = 0.7347
+Epoch 4/24, Training: Loss = -0.0774 Acc = 0.9155
+Epoch 4/24, Testing: Loss = 0.4095 Acc = 0.7496
+Epoch 5/24, Training: Loss = -0.0824 Acc = 0.9431
+Epoch 5/24, Testing: Loss = 0.5333 Acc = 0.7358
+Epoch 6/24, Training: Loss = -0.0856 Acc = 0.9611
+Epoch 6/24, Testing: Loss = 0.5880 Acc = 0.7474
+Epoch 7/24, Training: Loss = -0.0868 Acc = 0.9684
+Epoch 7/24, Testing: Loss = 0.6315 Acc = 0.7441
+Epoch 8/24, Training: Loss = -0.0879 Acc = 0.9733
+Epoch 8/24, Testing: Loss = 0.7060 Acc = 0.7513
+Epoch 9/24, Training: Loss = -0.0892 Acc = 0.9810
+Epoch 9/24, Testing: Loss = 0.7620 Acc = 0.7431
+LR is set to 0.001
+Epoch 10/24, Training: Loss = -0.0922 Acc = 0.9960
+Epoch 10/24, Testing: Loss = 0.8390 Acc = 0.7722
+Epoch 11/24, Training: Loss = -0.0930 Acc = 0.9999
+Epoch 11/24, Testing: Loss = 1.0790 Acc = 0.7727
+Epoch 12/24, Training: Loss = -0.0931 Acc = 1.0000
+Epoch 12/24, Testing: Loss = 0.9929 Acc = 0.7719
+Epoch 13/24, Training: Loss = -0.0931 Acc = 1.0000
+Epoch 13/24, Testing: Loss = 1.0852 Acc = 0.7719
+Epoch 14/24, Training: Loss = -0.0931 Acc = 1.0000
+Epoch 14/24, Testing: Loss = 1.0988 Acc = 0.7715
+Epoch 15/24, Training: Loss = -0.0931 Acc = 1.0000
+Epoch 15/24, Testing: Loss = 1.0897 Acc = 0.7719
+Epoch 16/24, Training: Loss = -0.0931 Acc = 1.0000
+Epoch 16/24, Testing: Loss = 0.9990 Acc = 0.7720
+Epoch 17/24, Training: Loss = -0.0931 Acc = 1.0000
+Epoch 17/24, Testing: Loss = 1.1209 Acc = 0.7722
+Epoch 18/24, Training: Loss = -0.0931 Acc = 1.0000
+Epoch 18/24, Testing: Loss = 1.0453 Acc = 0.7722
+Epoch 19/24, Training: Loss = -0.0931 Acc = 1.0000
+Epoch 19/24, Testing: Loss = 1.0264 Acc = 0.7720
+LR is set to 0.00010000000000000002
+Epoch 20/24, Training: Loss = -0.0931 Acc = 1.0000
+Epoch 20/24, Testing: Loss = 1.1312 Acc = 0.7721
+Epoch 21/24, Training: Loss = -0.0931 Acc = 1.0000
+Epoch 21/24, Testing: Loss = 1.1035 Acc = 0.7722
+Epoch 22/24, Training: Loss = -0.0931 Acc = 1.0000
+Epoch 22/24, Testing: Loss = 1.1088 Acc = 0.7721
+Epoch 23/24, Training: Loss = -0.0931 Acc = 1.0000
+Epoch 23/24, Testing: Loss = 1.0383 Acc = 0.7721
+Epoch 24/24, Training: Loss = -0.0931 Acc = 1.0000
+Epoch 24/24, Testing: Loss = 1.0798 Acc = 0.7720
+Training complete in 208m 18s

@@ -1,0 +1,17 @@
+Execution started: 
+18:29:06.884952
+Batch size: 40
+Hard factor: 1.000000
+Logit factor: 10.000000
+Temperature: 2.000000
+Soft factor: 10.000000
+Weight decay: 0.000020
+Number of epochs: 25
+Epochs between LR decay: 10
+Files already downloaded and verified
+Files already downloaded and verified
+Big model initialized
+Small model initialized
+using SGD optimizer
+LR is set to 0.004
+Epoch 0/24, Training: Loss = 0.0149 Acc = 0.4462

@@ -29,6 +29,8 @@ parser.add_argument('--nEpochs', '-e', default=25, type=int, metavar='N',
                     help='')
 parser.add_argument('--nLearningDecay', '-l', default=7, type=int, metavar='N',
                     help='')
+parser.add_argument('--dataset', '-l', default="CIFAR10", type=int, metavar='N',
+                    help='')
 
 args = parser.parse_args()
 
@@ -59,7 +61,7 @@ def intermediateModulesFromIndices(model, indices):
 
 
 def main(small_intermediate_indices, big_intermediate_indices, batch_size, hard_factor = .2, logit_factor = 1, soft_factor = 1, 
-         temperature = 1.0, weight_decay = .5e-4, num_epochs = 25, nLearningDecay = 7, testBigModel = False, filename = None, optim_mode = "ADAM"):
+         temperature = 1.0, weight_decay = .5e-4, num_epochs = 25, nLearningDecay = 7, testBigModel = False, filename = None, optim_mode = "ADAM", dataset = "CIFAR10"):
     
     if filename != None:
         file = open(filename, 'w')
@@ -72,25 +74,45 @@ def main(small_intermediate_indices, big_intermediate_indices, batch_size, hard_
     print('Logit factor: %f'%(logit_factor))
     print('Temperature: %f'%(temperature))
     print('Soft factor: %f'%(soft_factor))
+    print('Intermediate layers in small model: %s'%(str(small_intermediate_indices)))
+    print('Intermediate layers in big model: %s'%(str(big_intermediate_indices)))
     print('Weight decay: %f'%(weight_decay))
     print('Number of epochs: %d'%(num_epochs))
     print('Epochs between LR decay: %d'%(nLearningDecay))
+    print('Dataset used: %s'%(dataset))
     
     use_gpu = torch.cuda.is_available()
 
     # load CIFAR10
     transform = transforms.Compose(
         [transforms.Scale(224), transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    
+    if dataset == "CIFAR10":
+        
+        trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=4)
 
-    trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=4)
+        testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+        testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=4)
 
-    testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=4)
+        classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+    
+        model_big_state_dict_path = "modelBigStateDict250817"
+        
+    else if dataset == "CIFAR100":
+        
+        trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=4)
 
-    classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+        testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+        testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=4)
 
+        classes = list(range(100))
+        
+        model_big_state_dict_path = "modelBigStateDict"
 
+    n_classes = len(classes)   
+    
     #load the big network
     model_big = models.vgg16()
 
@@ -101,10 +123,10 @@ def main(small_intermediate_indices, big_intermediate_indices, batch_size, hard_
                 nn.Linear(4096, 4096),
                 nn.ReLU(True),
                 nn.Dropout(),
-                nn.Linear(4096, 10),
+                nn.Linear(4096, n_classes),
             )
 
-    model_big.load_state_dict(torch.load("modelBigStateDict250817"))
+    model_big.load_state_dict(torch.load(model_big_state_dict_path))
 
     #gradients not requiered
     for param in model_big.parameters():
@@ -150,11 +172,7 @@ def main(small_intermediate_indices, big_intermediate_indices, batch_size, hard_
     model_small.classifier = nn.Sequential(
                 nn.Linear(512 * 7 * 7, 4096),
                 nn.ReLU(True),
-                #nn.Dropout(),
-                #nn.Linear(4096, 4096),
-                #nn.ReLU(True),
-                #nn.Dropout(),
-                nn.Linear(4096, 10),
+                nn.Linear(4096, n_classes),
             )
 
     if use_gpu:
@@ -162,7 +180,7 @@ def main(small_intermediate_indices, big_intermediate_indices, batch_size, hard_
 
     print("Small model initialized")
 
-
+    
     #setting up the ActivationSavers
 
     model_big_intermediate_modules = intermediateModulesFromIndices(model_big, big_intermediate_indices)
@@ -341,4 +359,4 @@ if __name__ == "__main__":
     big_intermediate_indices = [[],[]]
 
     main(small_intermediate_indices, big_intermediate_indices, args.batchSize, args.hardFactor, args.logitFactor, args.softFactor,
-         args.temperature, args.regularization, args.nEpochs, args.nLearningDecay, False, None)
+         args.temperature, args.regularization, args.nEpochs, args.nLearningDecay, False, None, args.dataset)

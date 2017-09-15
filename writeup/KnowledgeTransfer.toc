@@ -1,0 +1,13 @@
+\boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax 
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {1}Introduction}{1}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2}Intermediate Layer Matching}{1}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {3}The Models}{1}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {4}The Dataset}{1}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {5}Training Methodology}{3}
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {6}Results}{3}

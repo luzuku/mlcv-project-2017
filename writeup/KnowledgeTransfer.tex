@@ -1,0 +1,161 @@
+\documentclass[]{scrartcl}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{Braket}
+\usepackage{array}
+\usepackage{tabulary}
+
+\usepackage[
+backend=bibtex,
+style=numeric
+]{biblatex}
+
+\addbibresource{sources.bib} 
+
+
+\usepackage{subcaption}
+
+\usepackage{color}
+\usepackage{setspace}
+\definecolor{Code}{rgb}{0,0,0}
+\definecolor{Decorators}{rgb}{0.5,0.5,0.5}
+\definecolor{Numbers}{rgb}{0.5,0,0}
+\definecolor{MatchingBrackets}{rgb}{0.25,0.5,0.5}
+\definecolor{Keywords}{rgb}{0,0,1}
+\definecolor{self}{rgb}{0,0,0}
+\definecolor{Strings}{rgb}{0,0.63,0}
+\definecolor{Comments}{rgb}{0,0.63,1}
+\definecolor{Backquotes}{rgb}{0,0,0}
+\definecolor{Classname}{rgb}{0,0,0}
+\definecolor{FunctionName}{rgb}{0,0,0}
+\definecolor{Operators}{rgb}{0,0,0}
+\definecolor{Background}{rgb}{0.98,0.98,0.98}
+
+
+\newcolumntype{K}[1]{>{\centering\arraybackslash}p{#1}}
+\newcommand{\thedate}{July 15, 2017}
+	
+%opening
+\title{Multi-Layer Knowledge Transfer for Neural Networks}
+
+\author{Project by Lennard Kiehl and Roman Remme}
+\date{September 2017}
+
+\begin{document}
+	
+\pagenumbering{gobble}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+\pagenumbering{arabic}
+\section{Introduction}
+In this project we extendend the Ideas of deep knowledge transfer between neural networks introduced in \cite{hinton2015distilling} by not only linking the last, but also intermediate layers of the networks. For a number of pairs of intermediate layers in the big and small network mean squared error (MSE) terms are added to the loss function.
+
+\section{Intermediate Layer Matching}
+
+Our loss function consists of four terms:
+\begin{itemize}
+	\item The "hard" loss: The cross-entropy of the output distribution of the network with the correct labels
+	\item The "soft" last layer loss: The cross-entropy of the output distribution with the "soft-targets", the output of the cumbersome model to extract knowledge from. Here, softmax layers with temperature $ T $ are used.
+	\item The intermediate layer loss: This is the mean squared error between the activations of pairs of layers in a certain set.
+\end{itemize}
+The third term is the new part of our approach. A theoretical advantage is that training times should be reduced, as gradients do not have to be propagated through the whole network to reach the first layers. Also this is a 
+
+\begin{table}[]
+	\centering
+	\caption{\textbf{Network configurations.} The convolutional layers are denoted as "conv(kernel size)-(number of channels)" and the fully connected layers as "FC-(number of output channels)". ReLu units are omitted for brevity. The left column numbers the layers of both networks whose activations were linked in the loss functions of section X. }
+	\label{tab:network_architectures}
+	\begin{tabular}{|K{1cm}|K{3cm}|K{3cm}|}
+		\hline
+		\multicolumn{3}{|c|}{Network Configurations with linkable layers} \\ \hline
+			&	VGG-16	&	VGG-7	\\ \hline
+			\hline
+		& \multicolumn{2}{c|}{input (224 by 224 RGB image)} \\ \hline
+		link 1	&	conv3-64	&	conv3-64	\\ 
+			& 	conv3-64	&		\\ \hline
+		
+			& \multicolumn{2}{c|}{maxpool 2x2} \\ \hline
+		link 2	&	conv3-128	&	conv3-128	\\ 
+			& 	conv3-128	&		\\ \hline
+			
+			& \multicolumn{2}{c|}{maxpool 2x2} \\ \hline
+		link 3	&	conv3-256	&	conv3-256	\\ 
+			& 	conv3-256	&		\\ 
+			& 	conv3-256	&		\\ \hline
+			& \multicolumn{2}{c|}{maxpool 2x2} \\ \hline
+		link 4	&	conv3-512	&	conv3-512	\\ 
+			& 	conv3-512	&		\\ 
+			& 	conv3-512	&		\\ \hline
+			& \multicolumn{2}{c|}{maxpool 2x2} \\ \hline
+		link 5	&	conv3-512	&	conv3-512	\\ 
+			& 	conv3-512	&		\\ 
+			& 	conv3-512	&		\\ \hline
+			& \multicolumn{2}{c|}{maxpool 2x2} \\ \hline
+		link 6	&	FC-4096	&	FC-4096	\\ 
+			& 	FC-4096	&		\\ 
+			& 	FC-10	&	FC-10	\\ \hline
+			& \multicolumn{2}{c|}{softmax} \\ \hline
+			
+	\end{tabular}
+\end{table}
+
+\section{The Models}
+
+As a big model to distil knowledge from we used VGG-16 (see \cite{DBLP:journals/corr/SimonyanZ14a}). For the smaller model that was trained with the help of the big one a similar architecture was used, where the number of convolutions between pooling layers was reduced from 2-3 to just one. We also cut one of the fully connected layers (see Table \ref{tab:network_architectures}). The similarity made it possible to compare intermediate activations at many points in the model.
+
+
+\section{The Dataset}
+
+We used CIFAR-10 (see \cite{krizhevsky2009learning}) as the dataset to train our models on. It consists of 50000 training and 10000 test RGB images of size 32 by 32 pixels. Each image belongs to one of ten classes. Some of the classes are a lot harder to distinguish that others, for example "Automobile" and "Truck". This makes the knowledge distillation procedure used in \cite{hinton2015distilling} promising. \\
+To use the VGG architecture with these low-resolution images, they are scaled up to 224 by 224 pixels.
+
+\section{Training Methodology}
+
+We used stochastic gradient descent with momentum 0.9 (CITATION NEEDED?) as an optimizer. We started with a learning rate of 0.004 and let it decay by a factor of 10 every 10 epochs for 25 epochs. 
+
+\section{Results}
+
+\begin{table}[]
+	\centering
+	\caption{\textbf{Last layer transfer results.} bla bla}
+	\label{tab:LL_results}
+	\begin{tabular}{|K{2cm}|K{3cm}|}
+		\hline
+		Temperature	&	Test set accuracy\\ \hline
+		0.6	&	76.3 \%	\\ \hline
+		1	&	76.5 \%	\\ \hline
+		1.5	&	77.0 \%	\\ \hline
+		2	&	\textbf{77.4} \%	\\ \hline
+		2.5	&	76.7 \%	\\ \hline
+		3	&	77.2 \%	\\ \hline
+		5	&	73.1 \%	\\ \hline
+		10	&	64.4 \%	\\ \hline
+		40	&	67.3 \%	\\ \hline
+	\end{tabular}
+\end{table}
+
+\begin{table}[]
+	\centering
+	\caption{\textbf{Intermediate Layers transfer results.} used last layer with temperature 2 and $ \alpha = 10 $}
+	\label{tab:interemediate_results}
+	\begin{tabular}{|K{3cm}|K{1cm}|K{2cm}|}
+		\hline
+		Linked layers	&	$\beta$	&	Test set accuracy\\ \hline
+		3	&	10	&	85.9\%	\\ \hline
+		2, 3, 4, 5	&	10	&	87.0\%	\\ \hline
+		2, 3, 4, 5	&	40	&	87.9\%	\\ \hline
+		5	&	10	&	87.7\%	\\ \hline
+		3, 4	&	10	&	84.8\%	\\ \hline
+		1, 2, 3, 4, 5, 6	&	10	&	81.2\%	\\ \hline
+		2, 3, 4, 5, 6	&	10	&	78.5\%	\\ \hline
+	\end{tabular}
+\end{table}
+
+\nocite{*}
+\printbibliography
+\end{document} 

@@ -3,9 +3,11 @@
 \usepackage{subcaption}
 \usepackage{listings}
 \usepackage{amsmath}
-\usepackage{Braket}
+\usepackage{braket}
 \usepackage{array}
 \usepackage{tabulary}
+\usepackage{csquotes}
+\usepackage[justification=raggedright, format=plain]{caption}
 
 \usepackage[
 backend=bibtex,
@@ -53,22 +55,16 @@ style=numeric
 \newpage
 
 \pagenumbering{arabic}
+
 \section{Introduction}
-In this project we extendend the Ideas of deep knowledge transfer between neural networks introduced in \cite{hinton2015distilling} by not only linking the last, but also intermediate layers of the networks. For a number of pairs of intermediate layers in the big and small network mean squared error (MSE) terms are added to the loss function.
+The idea of transferring knowledge between different architectures of neural networks, specifically from bigger models to smaller models, has been introduced in \cite{hinton2015distilling}. Part of the motivation for this process called distilling is to have a smaller model available, which is faster at runtime, that has the same knowledge as the bigger model. Distilling works by introducing another term to the loss function that links the last layers (logits) of both networks by calculating the mean squared error (MSE) between them. It was shown in \cite{hinton2015distilling} that this alone serves as a very good knowledge transfer tool. We want to extend on this idea and also add links between intermediate layers. The popular VGG-16 model introduced in \cite{DBLP:journals/corr/SimonyanZ14a} will serve as the bigger model and the goal is to distill each group of convolutional layers into only one convolutional layer, for an overview of the architectures see Table \ref{tab:network_architectures}. We will use CIFAR-10 \cite{krizhevsky2009learning} as our dataset and will investigate how training hyperparameters influence the process of successfully distilling knowledge.
 
-\section{Intermediate Layer Matching}
-
-Our loss function consists of four terms:
-\begin{itemize}
-	\item The "hard" loss: The cross-entropy of the output distribution of the network with the correct labels
-	\item The "soft" last layer loss: The cross-entropy of the output distribution with the "soft-targets", the output of the cumbersome model to extract knowledge from. Here, softmax layers with temperature $ T $ are used.
-	\item The intermediate layer loss: This is the mean squared error between the activations of pairs of layers in a certain set.
-\end{itemize}
-The third term is the new part of our approach. A theoretical advantage is that training times should be reduced, as gradients do not have to be propagated through the whole network to reach the first layers. Also this is a 
+\section{The Models}
 
 \begin{table}[]
+	
+	\caption{\textbf{Network configurations.} The convolutional layers are denoted as conv(\textit{kernel size})-(\textit{number of channels)} and the fully 		connected layers as FC-(\textit{number of output channels}). ReLu units are omitted for brevity. The left column numbers the layers of both networks 	whose activations were linked in the loss functions of section X.}
 	\centering
-	\caption{\textbf{Network configurations.} The convolutional layers are denoted as "conv(kernel size)-(number of channels)" and the fully connected layers as "FC-(number of output channels)". ReLu units are omitted for brevity. The left column numbers the layers of both networks whose activations were linked in the loss functions of section X. }
 	\label{tab:network_architectures}
 	\begin{tabular}{|K{1cm}|K{3cm}|K{3cm}|}
 		\hline
@@ -104,9 +100,22 @@ The third term is the new part of our approach. A theoretical advantage is that 
 	\end{tabular}
 \end{table}
 
-\section{The Models}
-
 As a big model to distil knowledge from we used VGG-16 (see \cite{DBLP:journals/corr/SimonyanZ14a}). For the smaller model that was trained with the help of the big one a similar architecture was used, where the number of convolutions between pooling layers was reduced from 2-3 to just one. We also cut one of the fully connected layers (see Table \ref{tab:network_architectures}). The similarity made it possible to compare intermediate activations at many points in the model.
+
+
+
+\section{Intermediate Layer Matching}
+
+Our loss function consists of four terms:
+\begin{itemize}
+	\item The "hard" loss: The cross-entropy of the output distribution of the network with the correct labels
+	\item The "soft" last layer loss: The cross-entropy of the output distribution with the "soft-targets", the output of the cumbersome model to extract knowledge from. Here, softmax layers with temperature $ T $ are used.
+	\item The intermediate layer loss: This is the mean squared error between the activations of pairs of layers in a certain set.
+\end{itemize}
+The third term is the new part of our approach. A theoretical advantage is that training times should be reduced, as gradients do not have to be propagated through the whole network to reach the first layers. Also this is a 
+
+
+
 
 
 \section{The Dataset}

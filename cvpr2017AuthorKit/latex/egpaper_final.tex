@@ -56,12 +56,17 @@ Roman Remme\\
 %%%%%%%%% BODY TEXT
 \section{Introduction}
 
-The idea of transferring knowledge between different architectures of neural networks, specifically from bigger models to smaller models, has been introduced in \cite{hinton2015distilling}. Part of the motivation for this process called distilling is to create a smaller model, which is faster at runtime, with the same knowledge as the bigger model. Distilling works by introducing an additional term to the loss function that links the last layers (logits) of both networks by calculating the cross entropy between them. It was shown in \cite{hinton2015distilling} that this alone serves as a very good knowledge transfer tool. We want to extend on this idea and also add links between intermediate layers. The popular VGG-16 model introduced in \cite{DBLP:journals/corr/SimonyanZ14a} serves as the bigger model and the goal is to distill each group of convolutional layers into only one convolutional layer, for an overview of the architectures see Table \ref{tab:network_architectures}. We investigate how training hyperparameters influence the process of successfully distilling knowledge.
+The idea of transferring knowledge between different architectures of neural networks, specifically from bigger models to smaller models, has been introduced in \cite{hinton2015distilling}. Part of the motivation for this process called distilling is to create a smaller model, which is faster at runtime, with the same knowledge as the bigger model. Distilling works by introducing an additional term to the loss function that links the last layers of both networks by calculating the cross entropy between them. The softmax has an added temperature dependency
+\begin{equation}
+	p_i = \frac{\exp(z_i / T)}{\sum_j \exp(z_j/T)}
+\end{equation}
+with logits $z_i$, class probabilities $p_i$ and temperature $T$, which is normally set to 1. Using a higher value for $T$ produces a softer probability distribution.
+It was shown in \cite{hinton2015distilling} that this alone serves as a very good knowledge transfer tool. We want to extend on this idea and also add links between intermediate layers. The popular VGG-16 model introduced in \cite{DBLP:journals/corr/SimonyanZ14a} serves as the bigger model and the goal is to distill each group of convolutional layers into only one convolutional layer, for an overview of the architectures see Table \ref{tab:network_architectures}. We investigate how training hyper-parameters influence the process of successfully distilling knowledge.
 
 %-------------------------------------------------------------------------
 \subsection{Models}
 
-As a big model to distill knowledge from we use VGG-16 (see \cite{DBLP:journals/corr/SimonyanZ14a}). For the smaller model that was trained with the help of the big one a similar architecture was used, where the number of convolutional layers between pooling layers was reduced from to just one. We also cut one of the fully connected layers (see Table \ref{tab:network_architectures}). The similarity made it possible to compare intermediate activations at many points in the model.
+For our experiments we use VGG-16 \cite{DBLP:journals/corr/SimonyanZ14a} as the big model. For the small model all stacks of convolutional layers have been replaced by one single convolutional layer (see Table \ref{tab:network_architectures}) and the number of fully connected layers was reduced by one. The similarity between the models is by design and makes it possible to have a maximum of 6 separate links while doing the knowledge transfer. To get the knowledge we want to transfer in the first place, the big model is trained on CIFAR10 \cite{krizhevsky2009learning} with the hyper-parameters shown in Table \ref{tab:baseline_small_big}. The convolutional layers of the big model are initialized with pre-trained weights on ImageNet \cite{ILSVRC15} while the fully connected layers are initialized randomly. The small model had to be trained from scratch as it is an uncommon architecture. The accuracies in Table \ref{tab:baseline_small_big} serve as our baseline and we expect the accuracy of the small model after distilling to be somewhere between these two values.
 
 \begin{table}
 	\begin{center}
@@ -102,26 +107,48 @@ As a big model to distill knowledge from we use VGG-16 (see \cite{DBLP:journals/
 	\caption{\textbf{Network configurations.} The convolutional layers are denoted as conv(\textit{kernel size})-(\textit{number of channels)} and the fully 		connected layers as FC-(\textit{number of output channels}). ReLu units are omitted for brevity. The leftmost column gives the links between both networks that are added to the loss function.}
 \end{table}
 
+\begin{table}[]
+	\begin{center}
+	\begin{tabular}{|c|c|c|}
+		\hline
+								&	small model 	&	big model	\\ \hline
+		batchsize					&	40			&	40		\\ \hline
+		momentum				&	0.9			&	0.9		\\ \hline
+		weight decay				&	0.00002		&	0.00002	\\ \hline
+		init learning rate (LR)			&	0.004		&	0.004	\\ \hline
+		epochs between LR decay 	&	10			&	10		\\ \hline
+		epochs					&	25			&	25		\\ \hline
+		train accuracy				&	84.8\%		&	84.8\%	\\ \hline
+		test accuracy				&	84.8\%		&	84.8\%	\\ \hline
+	\end{tabular}
+	\end{center}
+	\caption{\textbf{Baseline Training.} Both network architectures were trained with the given parameters to have a baseline to compare our transfer 	training to. The conv. layers of the big model had pre-trained weights while the small model was trained from scratch.}
+	\label{tab:baseline_small_big}
+\end{table}
+
 \subsection{Loss}
-The loss function consists of three terms:
+The loss function for transferring knowledge into the small model is a weighted sum of three terms:
 \begin{itemize}
-	\item The ``hard" loss: The cross-entropy of the output distribution of the network with the correct labels
-	\item The ``soft" last layer loss: The cross-entropy of the output distribution with the ``soft-targets", the output of the cumbersome model to extract knowledge from. Here, softmax layers with temperature $T$ are used.
-	\item The intermediate layer loss: This is the mean squared error between the activations of pairs of layers in a certain set.
+	\item ``hard" loss: cross-entropy between output and correct label at temperature $T=1$.
+	\item ``soft" loss: cross-entropy between output and prediction of big model at temperature $T$
+	\item ``intermediate" loss: sum of MSE between linked intermediate layers
 \end{itemize}
-The third term is the new part of our approach. A theoretical advantage is that training times should be reduced, as gradients do not have to be propagated through the whole network to reach the first layers. Also this is a 
+The third term is the new part of our approach. A theoretical advantage is that training times should be reduced, as gradients do not have to be propagated through the whole network to reach the first layers. Typical factors in the weighted sum are
+\begin{equation}
+	\text{loss} = 0.05 \cdot \text{hard} + 0.6 \cdot \text{soft} + 0.35 \cdot \text{intermediate}.
+\end{equation}
 
 
 
 \subsection{Dataset}
-We use CIFAR-10 \cite{krizhevsky2009learning} as the dataset to train to train both models on. It consists of 50000 training and 10000 test RGB images of size 32$\times$32 pixels. Each image belongs to one of ten classes. To use the standard VGG architecture with these low-resolution images, they are scaled up to 224$\times$224 pixels. Each image is preprocessed by subtracting the mean RGB value, computed on the training set, from each pixel. 
+We use CIFAR-10 \cite{krizhevsky2009learning} as the dataset to train both models on for all experiments. It consists of 50000 training and 10000 test RGB images of size 32$\times$32 pixels. Each image belongs to one of ten classes. To use the standard VGG architecture with these low-resolution images, they are scaled up to 224$\times$224 pixels. Each image is preprocessed by subtracting the mean RGB value, computed on the training set, from each pixel. 
  
 
 %-------------------------------------------------------------------------
-\section{Training}
+\section{Experiments}
 We used stochastic gradient descent with momentum 0.9 (CITATION NEEDED?) as an optimizer. We started with a learning rate of 0.004 and let it decay by a factor of 10 every 10 epochs for 25 epochs. 
 
-\section{Results}
+\subsection{Temperature of soft loss}
 \begin{table}[]
 	\begin{center}
 	\begin{tabular}{|c|c|}
@@ -142,6 +169,7 @@ We used stochastic gradient descent with momentum 0.9 (CITATION NEEDED?) as an o
 	\label{tab:LL_results}
 \end{table}
 
+\subsection{Linking intermediate layers}
 \begin{table}[]
 	\begin{center}
 	\begin{tabular}{|c|c|c|}
@@ -160,317 +188,10 @@ We used stochastic gradient descent with momentum 0.9 (CITATION NEEDED?) as an o
 	\label{tab:interemediate_results}
 \end{table}
 
+\subsection{Evolution of loss contributions}
 
-\subsection{Blind review}
-
-Many authors misunderstand the concept of anonymizing for blind
-review.  Blind review does not mean that one must remove
-citations to one's own work---in fact it is often impossible to
-review a paper unless the previous citations are known and
-available.
-
-Blind review means that you do not use the words ``my'' or ``our''
-when citing previous work.  That is all.  (But see below for
-techreports.)
-
-Saying ``this builds on the work of Lucy Smith [1]'' does not say
-that you are Lucy Smith; it says that you are building on her
-work.  If you are Smith and Jones, do not say ``as we show in
-[7]'', say ``as Smith and Jones show in [7]'' and at the end of the
-paper, include reference 7 as you would any other cited work.
-
-An example of a bad paper just asking to be rejected:
-\begin{quote}
-\begin{center}
-    An analysis of the frobnicatable foo filter.
-\end{center}
-
-   In this paper we present a performance analysis of our
-   previous paper [1], and show it to be inferior to all
-   previously known methods.  Why the previous paper was
-   accepted without this analysis is beyond me.
-
-   [1] Removed for blind review
-\end{quote}
-
-
-An example of an acceptable paper:
-
-\begin{quote}
-\begin{center}
-     An analysis of the frobnicatable foo filter.
-\end{center}
-
-   In this paper we present a performance analysis of the
-   paper of Smith \etal [1], and show it to be inferior to
-   all previously known methods.  Why the previous paper
-   was accepted without this analysis is beyond me.
-
-   [1] Smith, L and Jones, C. ``The frobnicatable foo
-   filter, a fundamental contribution to human knowledge''.
-   Nature 381(12), 1-213.
-\end{quote}
-
-If you are making a submission to another conference at the same time,
-which covers similar or overlapping material, you may need to refer to that
-submission in order to explain the differences, just as you would if you
-had previously published related work.  In such cases, include the
-anonymized parallel submission~\cite{Authors14} as additional material and
-cite it as
-\begin{quote}
-[1] Authors. ``The frobnicatable foo filter'', F\&G 2014 Submission ID 324,
-Supplied as additional material {\tt fg324.pdf}.
-\end{quote}
-
-Finally, you may feel you need to tell the reader that more details can be
-found elsewhere, and refer them to a technical report.  For conference
-submissions, the paper must stand on its own, and not {\em require} the
-reviewer to go to a techreport for further details.  Thus, you may say in
-the body of the paper ``further details may be found
-in~\cite{Authors14b}''.  Then submit the techreport as additional material.
-Again, you may not assume the reviewers will read this material. 
-
-Sometimes your paper is about a problem which you tested using a tool which
-is widely known to be restricted to a single institution.  For example,
-let's say it's 1969, you have solved a key problem on the Apollo lander,
-and you believe that the CVPR70 audience would like to hear about your
-solution.  The work is a development of your celebrated 1968 paper entitled
-``Zero-g frobnication: How being the only people in the world with access to
-the Apollo lander source code makes us a wow at parties'', by Zeus \etal.
-
-You can handle this paper like any other.  Don't write ``We show how to
-improve our previous work [Anonymous, 1968].  This time we tested the
-algorithm on a lunar lander [name of lander removed for blind review]''.
-That would be silly, and would immediately identify the authors. Instead
-write the following:
-\begin{quotation}
-\noindent
-   We describe a system for zero-g frobnication.  This
-   system is new because it handles the following cases:
-   A, B.  Previous systems [Zeus et al. 1968] didn't
-   handle case B properly.  Ours handles it by including
-   a foo term in the bar integral.
-
-   ...
-
-   The proposed system was integrated with the Apollo
-   lunar lander, and went all the way to the moon, don't
-   you know.  It displayed the following behaviours
-   which show how well we solved cases A and B: ...
-\end{quotation}
-As you can see, the above text follows standard scientific convention,
-reads better than the first version, and does not explicitly name you as
-the authors.  A reviewer might think it likely that the new paper was
-written by Zeus \etal, but cannot make any decision based on that guess.
-He or she would have to be sure that no other authors could have been
-contracted to solve problem B.
-
-FAQ: Are acknowledgements OK?  No.  Leave them for the final copy.
-
-
-\begin{figure}[t]
-\begin{center}
-\fbox{\rule{0pt}{2in} \rule{0.9\linewidth}{0pt}}
-   %\includegraphics[width=0.8\linewidth]{egfigure.eps}
-\end{center}
-   \caption{Example of caption.  It is set in Roman so that mathematics
-   (always set in Roman: $B \sin A = A \sin B$) may be included without an
-   ugly clash.}
-\label{fig:long}
-\label{fig:onecol}
-\end{figure}
-
-\subsection{Miscellaneous}
-
-\noindent
-Compare the following:\\
-\begin{tabular}{ll}
- \verb'$conf_a$' &  $conf_a$ \\
- \verb'$\mathit{conf}_a$' & $\mathit{conf}_a$
-\end{tabular}\\
-See The \TeX book, p165.
-
-The space after \eg, meaning ``for example'', should not be a
-sentence-ending space. So \eg is correct, {\em e.g.} is not.  The provided
-\verb'\eg' macro takes care of this.
-
-When citing a multi-author paper, you may save space by using ``et alia'',
-shortened to ``\etal'' (not ``{\em et.\ al.}'' as ``{\em et}'' is a complete word.)
-However, use it only when there are three or more authors.  Thus, the
-following is correct: ``
-   Frobnication has been trendy lately.
-   It was introduced by Alpher~\cite{Alpher02}, and subsequently developed by
-   Alpher and Fotheringham-Smythe~\cite{Alpher03}, and Alpher \etal~\cite{Alpher04}.''
-
-This is incorrect: ``... subsequently developed by Alpher \etal~\cite{Alpher03} ...''
-because reference~\cite{Alpher03} has just two authors.  If you use the
-\verb'\etal' macro provided, then you need not worry about double periods
-when used at the end of a sentence as in Alpher \etal.
-
-For this citation style, keep multiple citations in numerical (not
-chronological) order, so prefer \cite{Alpher03,Alpher02,Authors14} to
-\cite{Alpher02,Alpher03,Authors14}.
-
-
-\begin{figure*}
-\begin{center}
-\fbox{\rule{0pt}{2in} \rule{.9\linewidth}{0pt}}
-\end{center}
-   \caption{Example of a short caption, which should be centered.}
-\label{fig:short}
-\end{figure*}
-
-%------------------------------------------------------------------------
-\section{Formatting your paper}
-
-All text must be in a two-column format. The total allowable width of the
-text area is $6\frac78$ inches (17.5 cm) wide by $8\frac78$ inches (22.54
-cm) high. Columns are to be $3\frac14$ inches (8.25 cm) wide, with a
-$\frac{5}{16}$ inch (0.8 cm) space between them. The main title (on the
-first page) should begin 1.0 inch (2.54 cm) from the top edge of the
-page. The second and following pages should begin 1.0 inch (2.54 cm) from
-the top edge. On all pages, the bottom margin should be 1-1/8 inches (2.86
-cm) from the bottom edge of the page for $8.5 \times 11$-inch paper; for A4
-paper, approximately 1-5/8 inches (4.13 cm) from the bottom edge of the
-page.
-
-%-------------------------------------------------------------------------
-\subsection{Margins and page numbering}
-
-All printed material, including text, illustrations, and charts, must be kept
-within a print area 6-7/8 inches (17.5 cm) wide by 8-7/8 inches (22.54 cm)
-high.
-Page numbers should be in footer with page numbers, centered and .75
-inches from the bottom of the page and make it start at the correct page
-number rather than the 4321 in the example.  To do this fine the line (around
-line 23)
-\begin{verbatim}
-%\ifcvprfinal\pagestyle{empty}\fi
-\setcounter{page}{4321}
-\end{verbatim}
-where the number 4321 is your assigned starting page.
-
-Make sure the first page is numbered by commenting out the first page being
-empty on line 46
-\begin{verbatim}
-%\thispagestyle{empty}
-\end{verbatim}
-
-
-%-------------------------------------------------------------------------
-\subsection{Type-style and fonts}
-
-Wherever Times is specified, Times Roman may also be used. If neither is
-available on your word processor, please use the font closest in
-appearance to Times to which you have access.
-
-MAIN TITLE. Center the title 1-3/8 inches (3.49 cm) from the top edge of
-the first page. The title should be in Times 14-point, boldface type.
-Capitalize the first letter of nouns, pronouns, verbs, adjectives, and
-adverbs; do not capitalize articles, coordinate conjunctions, or
-prepositions (unless the title begins with such a word). Leave two blank
-lines after the title.
-
-AUTHOR NAME(s) and AFFILIATION(s) are to be centered beneath the title
-and printed in Times 12-point, non-boldface type. This information is to
-be followed by two blank lines.
-
-The ABSTRACT and MAIN TEXT are to be in a two-column format.
-
-MAIN TEXT. Type main text in 10-point Times, single-spaced. Do NOT use
-double-spacing. All paragraphs should be indented 1 pica (approx. 1/6
-inch or 0.422 cm). Make sure your text is fully justified---that is,
-flush left and flush right. Please do not place any additional blank
-lines between paragraphs.
-
-Figure and table captions should be 9-point Roman type as in
-Figures~\ref{fig:onecol} and~\ref{fig:short}.  Short captions should be centred.
-
-\noindent Callouts should be 9-point Helvetica, non-boldface type.
-Initially capitalize only the first word of section titles and first-,
-second-, and third-order headings.
-
-FIRST-ORDER HEADINGS. (For example, {\large \bf 1. Introduction})
-should be Times 12-point boldface, initially capitalized, flush left,
-with one blank line before, and one blank line after.
-
-SECOND-ORDER HEADINGS. (For example, { \bf 1.1. Database elements})
-should be Times 11-point boldface, initially capitalized, flush left,
-with one blank line before, and one after. If you require a third-order
-heading (we discourage it), use 10-point Times, boldface, initially
-capitalized, flush left, preceded by one blank line, followed by a period
-and your text on the same line.
-
-%-------------------------------------------------------------------------
-\subsection{Footnotes}
-
-Please use footnotes\footnote {This is what a footnote looks like.  It
-often distracts the reader from the main flow of the argument.} sparingly.
-Indeed, try to avoid footnotes altogether and include necessary peripheral
-observations in
-the text (within parentheses, if you prefer, as in this sentence).  If you
-wish to use a footnote, place it at the bottom of the column on the page on
-which it is referenced. Use Times 8-point type, single-spaced.
-
-
-%-------------------------------------------------------------------------
-\subsection{References}
-
-List and number all bibliographical references in 9-point Times,
-single-spaced, at the end of your paper. When referenced in the text,
-enclose the citation number in square brackets, for
-example~\cite{Authors14}.  Where appropriate, include the name(s) of
-editors of referenced books.
-
-\begin{table}
-\begin{center}
-\begin{tabular}{|l|c|}
-\hline
-Method & Frobnability \\
-\hline\hline
-Theirs & Frumpy \\
-Yours & Frobbly \\
-Ours & Makes one's heart Frob\\
-\hline
-\end{tabular}
-\end{center}
-\caption{Results.   Ours is better.}
-\end{table}
-
-%-------------------------------------------------------------------------
-\subsection{Illustrations, graphs, and photographs}
-
-All graphics should be centered.  Please ensure that any point you wish to
-make is resolvable in a printed copy of the paper.  Resize fonts in figures
-to match the font in the body text, and choose line widths which render
-effectively in print.  Many readers (and reviewers), even of an electronic
-copy, will choose to print your paper in order to read it.  You cannot
-insist that they do otherwise, and therefore must not assume that they can
-zoom in to see tiny details on a graphic.
-
-When placing figures in \LaTeX, it's almost always best to use
-\verb+\includegraphics+, and to specify the  figure width as a multiple of
-the line width as in the example below
-{\small\begin{verbatim}
-   \usepackage[dvips]{graphicx} ...
-   \includegraphics[width=0.8\linewidth]
-                   {myfile.eps}
-\end{verbatim}
-}
-
-
-%-------------------------------------------------------------------------
-\subsection{Color}
-
-Please refer to the author guidelines on the CVPR 2017 web page for a discussion
-of the use of color in your document.
-
-%------------------------------------------------------------------------
-\section{Final copy}
-
-You must include your signed IEEE copyright release form when you submit
-your finished paper. We MUST have this form before your paper can be
-published in the proceedings.
+\section{Discussion}
+This is the discussion. We are great!
 
 
 {\small

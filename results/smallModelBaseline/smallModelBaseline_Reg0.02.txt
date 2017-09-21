@@ -1,0 +1,58 @@
+Execution started: 
+21:36:03.398632
+Batch size: 40
+Hard factor: 1.000000
+Logit factor: 0.000000
+Temperature: 2.000000
+Soft factor: 0.000000
+Intermediate layers in small model: [[], []]
+Intermediate layers in big model: [[], []]
+Weight decay: 0.020000
+Number of epochs: 25
+Epochs between LR decay: 10
+Dataset used: CIFAR10
+Files already downloaded and verified
+Files already downloaded and verified
+Big model initialized
+Small model initialized
+using SGD optimizer
+LR is set to 0.004
+Epoch 0/24, Training: TotalLoss = 0.03921736 HardLoss = 0.03921736 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.4376
+Epoch 0/24, Testing: TotalLoss = 0.09408552 HardLoss = 0.09408552 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.5243
+Epoch 1/24, Training: TotalLoss = 0.03129420 HardLoss = 0.03129420 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.5517
+Epoch 1/24, Testing: TotalLoss = 0.09855962 HardLoss = 0.09855962 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.5882
+Epoch 2/24, Training: TotalLoss = 0.02859970 HardLoss = 0.02859970 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.5953
+Epoch 2/24, Testing: TotalLoss = 0.10810533 HardLoss = 0.10810533 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.6078
+Epoch 3/24, Training: TotalLoss = 0.02699445 HardLoss = 0.02699445 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.6228
+Epoch 3/24, Testing: TotalLoss = 0.09605411 HardLoss = 0.09605411 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.6183
+Epoch 4/24, Training: TotalLoss = 0.02570045 HardLoss = 0.02570045 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.6423
+Epoch 4/24, Testing: TotalLoss = 0.12197581 HardLoss = 0.12197581 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.6325
+Epoch 5/24, Training: TotalLoss = 0.02490613 HardLoss = 0.02490613 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.6541
+Epoch 5/24, Testing: TotalLoss = 0.10262010 HardLoss = 0.10262010 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.6334
+Epoch 6/24, Training: TotalLoss = 0.02409342 HardLoss = 0.02409342 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.6641
+Epoch 6/24, Testing: TotalLoss = 0.11898697 HardLoss = 0.11898697 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.6554
+Epoch 7/24, Training: TotalLoss = 0.02325330 HardLoss = 0.02325330 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.6789
+Epoch 7/24, Testing: TotalLoss = 0.12289203 HardLoss = 0.12289203 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.6441
+Epoch 8/24, Training: TotalLoss = 0.02246801 HardLoss = 0.02246801 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.6889
+Epoch 8/24, Testing: TotalLoss = 0.12326923 HardLoss = 0.12326923 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.6619
+Epoch 9/24, Training: TotalLoss = 0.02170287 HardLoss = 0.02170287 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.7000
+Epoch 9/24, Testing: TotalLoss = 0.11298197 HardLoss = 0.11298197 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.6859
+LR is set to 0.0004
+Epoch 10/24, Training: TotalLoss = 0.01413949 HardLoss = 0.01413949 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.8100
+Epoch 10/24, Testing: TotalLoss = 0.16903278 HardLoss = 0.16903278 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.7475
+Epoch 11/24, Training: TotalLoss = 0.01176807 HardLoss = 0.01176807 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.8434
+Epoch 11/24, Testing: TotalLoss = 0.14659288 HardLoss = 0.14659288 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.7580
+Epoch 12/24, Training: TotalLoss = 0.01019648 HardLoss = 0.01019648 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.8672
+Epoch 12/24, Testing: TotalLoss = 0.16153063 HardLoss = 0.16153063 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.7591
+Epoch 13/24, Training: TotalLoss = 0.00878665 HardLoss = 0.00878665 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.8894
+Epoch 13/24, Testing: TotalLoss = 0.18713682 HardLoss = 0.18713682 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.7578
+Epoch 14/24, Training: TotalLoss = 0.00743162 HardLoss = 0.00743162 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.9080
+Epoch 14/24, Testing: TotalLoss = 0.18800346 HardLoss = 0.18800346 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.7568
+Epoch 15/24, Training: TotalLoss = 0.00613856 HardLoss = 0.00613856 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.9274
+Epoch 15/24, Testing: TotalLoss = 0.21068768 HardLoss = 0.21068768 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.7576
+Epoch 16/24, Training: TotalLoss = 0.00514139 HardLoss = 0.00514139 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.9415
+Epoch 16/24, Testing: TotalLoss = 0.23258368 HardLoss = 0.23258368 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.7524
+Epoch 17/24, Training: TotalLoss = 0.00420936 HardLoss = 0.00420936 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.9556
+Epoch 17/24, Testing: TotalLoss = 0.20435477 HardLoss = 0.20435477 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.7537
+Epoch 18/24, Training: TotalLoss = 0.00374868 HardLoss = 0.00374868 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.9617
+Epoch 18/24, Testing: TotalLoss = 0.22956594 HardLoss = 0.22956594 LogitLoss = 0.00000000 SoftLoss = 0.00000000 Acc = 0.7425

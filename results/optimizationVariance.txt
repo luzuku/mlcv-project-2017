@@ -1,0 +1,8 @@
+same optimization test accuracies after 25 epoch training
+0.7643
+0.7617
+0.7630
+0.7586
+0.7636
+0.7640
+0.7618

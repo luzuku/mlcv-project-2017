@@ -133,6 +133,7 @@ The loss function for transferring knowledge into the small model is a weighted 
 	\item ``soft" loss: cross-entropy between output and prediction of big model at temperature $T$
 	\item ``intermediate" loss: sum of MSE between linked intermediate layers
 \end{itemize}
+INSERT FORMULAS HERE \\
 The third term is the new part of our approach. A theoretical advantage is that training times should be reduced, as gradients do not have to be propagated through the whole network to reach the first layers. Typical factors in the weighted sum are
 \begin{equation}
 	\text{loss} = 0.05 \cdot \text{hard} + 0.6 \cdot \text{soft} + 0.35 \cdot \text{intermediate}.
@@ -146,7 +147,7 @@ We use CIFAR-10 \cite{krizhevsky2009learning} as the dataset to train both model
 
 %-------------------------------------------------------------------------
 \section{Experiments}
-We used stochastic gradient descent with momentum 0.9 (CITATION NEEDED?) as an optimizer. We started with a learning rate of 0.004 and let it decay by a factor of 10 every 10 epochs for 25 epochs. 
+We used stochastic gradient descent with momentum 0.9 (CITATION NEEDED?) as an optimizer. We started with a learning rate of 0.004 and let it decay by a factor of 10 every 10 epochs for 25 epochs. This way the accuracy stopped changing significantly prior to the drops in learning rate.
 
 \subsection{Temperature of soft loss}
 \begin{table}[]
@@ -169,30 +170,52 @@ We used stochastic gradient descent with momentum 0.9 (CITATION NEEDED?) as an o
 	\label{tab:LL_results}
 \end{table}
 
+Before adding the "intermediate" loss, we trained the model only using the transfer method from \cite{hinton2015distilling}. The relative weigth of the "soft" loss was chosen to be ten times that of the "hard" loss. We found the best temperature $ T $ to be approximately 2, see Table \ref{tab:LL_results}. This value was also used for all following experiments. The corresponding test set accuracy is 77.4\%, improving the small model baseline only slightly, by X\%.
+
+
 \subsection{Linking intermediate layers}
 \begin{table}[]
 	\begin{center}
 	\begin{tabular}{|c|c|c|}
 		\hline
 		Linked layers	&	$\beta$	&	Test set accuracy\\ \hline
-		3	&	10	&	85.9\%	\\ \hline
-		2, 3, 4, 5	&	10	&	87.0\%	\\ \hline
-		2, 3, 4, 5	&	40	&	87.9\%	\\ \hline
-		5	&	10	&	87.7\%	\\ \hline
+		1	&	10	&	78.3\%	\\ \hline
+		2	&	10	&	80.3\%	\\ \hline
+		3	&	10	&	83.0\%	\\ \hline
+		4	&	10	&	85.6\%	\\ \hline
+		5	&	10	&	\textbf{87.9}\%	\\ \hline
+		6	&	10	&	86.1\%	\\ \hline
 		3, 4	&	10	&	84.8\%	\\ \hline
-		1, 2, 3, 4, 5, 6	&	10	&	81.2\%	\\ \hline
+		2, 3, 4, 5	&	10	&	87.0\%	\\ \hline
+		2, 3, 4, 5	&	40	&	\textbf{87.9}\%	\\ \hline
 		2, 3, 4, 5, 6	&	10	&	78.5\%	\\ \hline
+		1, 2, 3, 4, 5, 6	&	10	&	81.2\%	\\ \hline
 	\end{tabular}
 	\end{center}
-	\caption{\textbf{Intermediate Layers transfer results.} used last layer with temperature 2 and $ \alpha = 10 $}
+	\caption{\textbf{Intermediate Layers transfer results.} used last layer with temperature 2 and $ \alpha = 10 $. MEINE AUSWAHL SIEHT HIER ZIEMLICH DUMM AUS.. VIELLEICHT WAS WEGLASSEN}
 	\label{tab:interemediate_results}
 \end{table}
+the relative weight of the "intermediate" loss was chosen to be identical to that of the "soft" loss. When connecting multiple layers, the losses of the individual links was averaged. Table \ref{tab:interemediate_results} shows an overview of the link configurations we used, and the corresponding accuracies. First, we used one link at a time. Link 5, the last link in the convolutional part of the network, gave the best test set accuracy of 87.9\%. Using multiple intermediate layers yielded at best equally good results. But since far from all possibilities were explored, it is possible that further improvements are possible with the right choice of layers to link.
 
 \subsection{Evolution of loss contributions}
+
+CANT SAY ANYTHING ABOUT SOFT LOSS WITHOUT FURTHER EXPERIMENT.. 
+"hard" loss drops fast on train set, but not on test set (duh..)
+"intermediate" loss: fast drop in first epochs, then converges to constant value. remarkable: almost identical on train and test set --> good regularization
+(would be interesting to try on very small train set..)
+
 
 \section{Discussion}
 This is the discussion. We are great!
 
+\begin{itemize}
+	\item good results, intermediate much better than only last
+	\item choice of hyperparameters partially arbitrary: relative weights of the losses, regularization missing, choice of layers to use for transfer
+	\item longer training could lead to further improvements, intermediate loss did not stop declining (though quite slow $ \rightarrow $ limit for us)
+	\item decent results are achieved much faster (fewer epochs) compared to hard loss only. reason: "shorter way" to first layers
+	\item potential advantages on small training sets
+	\item overall: good initial results, further investigation necessary (other datasets, architectures, better tuning of hyperparameters)
+\end{itemize}
 
 {\small
 \bibliographystyle{ieee}

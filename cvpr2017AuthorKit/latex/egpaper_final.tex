@@ -56,50 +56,70 @@ Roman Remme\\
 %%%%%%%%% BODY TEXT
 \section{Introduction}
 
-The idea of transferring knowledge between different architectures of neural networks, specifically from bigger models to smaller models, has been introduced in \cite{hinton2015distilling}. Part of the motivation for this process called distilling is to create a smaller model, which is faster at runtime, with the same knowledge as the bigger model. Distilling works by introducing an additional term to the loss function that links the last layers of both networks by calculating the cross entropy between them. The softmax has an added temperature dependency
+The idea of transferring knowledge between different architectures of neural networks, specifically from bigger models to smaller models, has been introduced in \cite{hinton2015distilling}. Part of the motivation for this process called distilling is to create a smaller model which is faster at runtime, with the same knowledge as the bigger model. We want to extend on this idea and not only compare the last layers of both networks while training the smaller one but also add links between intermediate layers. This extension is a really canonical one as especially bigger models used for image classification have a lot of their knowledge saved in their convolutional layers which may not completely translate into the final prediction. The popular VGG-16 model introduced in \cite{DBLP:journals/corr/SimonyanZ14a} serves as the bigger model and the goal is to distill each group of convolutional layers into only one convolutional layer, for an overview of the architectures see Table \ref{tab:network_architectures}. We investigate how training hyper-parameters influence the process of successfully distilling knowledge.
+
+\subsection{Distillation}
+As it is a prerequisite for distilling to have an already trained model, to make this process worthwhile the trained model should have some kind of disadvantage at inference because distilling allows to transfer knowledge to a smaller model better suited for inference. And as shown in \cite{hinton2015distilling} distillation also works with a fraction of the original training set as well as unlabeled data because the trained model should produce reliable predictions even for unseen data.
+To transfer knowledge an additional term to the loss function is introduced that links the softmax layers of both networks by calculating their cross entropy. This way the smaller model will not only have to produce the correct label but also the relationship between classes of lower probability. The softmax also has an added temperature dependency for training
 \begin{equation}
 	p_i = \frac{\exp(z_i / T)}{\sum_j \exp(z_j/T)}
+	\label{eq:softmaxtemperature}
 \end{equation}
-with logits $z_i$, class probabilities $p_i$ and temperature $T$, which is normally set to 1. Using a higher value for $T$ produces a softer probability distribution.
-It was shown in \cite{hinton2015distilling} that this alone serves as a very good knowledge transfer tool. We want to extend on this idea and also add links between intermediate layers. The popular VGG-16 model introduced in \cite{DBLP:journals/corr/SimonyanZ14a} serves as the bigger model and the goal is to distill each group of convolutional layers into only one convolutional layer, for an overview of the architectures see Table \ref{tab:network_architectures}. We investigate how training hyper-parameters influence the process of successfully distilling knowledge.
+with logits $z_i$, class probabilities $p_i$ and temperature $T$, which whould normally be set to 1. Using a higher value for $T$ produces a softer probability distribution and should force the smaller model to optimize better for intermediate relationships between classes. It was shown in \cite{hinton2015distilling} that this alone serves as a very good knowledge transfer tool. We will investigate how adding a selection of other links while training will influence the distillation. For an overview of the proposed links see Table \ref{tab:network_architectures}.
+
+\subsection{Loss}
+The loss function for transferring knowledge into the small model is a weighted sum of three terms:
+\begin{itemize}
+	\item ``hard" loss: cross-entropy between output and correct label at temperature $T=1$.
+	\item ``soft" loss: cross-entropy between output and prediction of big model at temperature $T$
+	\item ``intermediate" loss: sum of MSE between linked intermediate layers
+\end{itemize}
+FIXME: Insert formulas here \\
+The third term is the new part of our approach. An anticipated advantage is that training times should be reduced, as gradients do not have to be propagated through the whole network to reach the first layers. Typical factors in the weighted sum are
+\begin{equation}
+	\text{loss} = 1 \cdot \text{hard} + 10 \cdot \text{soft} + 10 \cdot \text{intermediate}.
+	\label{eq:lossfactors}
+\end{equation}
+
+The main contribution comes from the ``soft" loss and the ``hard" loss while still significantly improving distillation contributes much less. This is also consistent with the ideas in \cite{hinton2015distilling}. We would place the importance of the ``intermediate" loss somewhere between these two which is relfected in Equation \ref{eq:lossfactors}.
 
 %-------------------------------------------------------------------------
 \subsection{Models}
 
-For our experiments we use VGG-16 \cite{DBLP:journals/corr/SimonyanZ14a} as the big model. For the small model all stacks of convolutional layers have been replaced by one single convolutional layer (see Table \ref{tab:network_architectures}) and the number of fully connected layers was reduced by one. The similarity between the models is by design and makes it possible to have a maximum of 6 separate links while doing the knowledge transfer. To get the knowledge we want to transfer in the first place, the big model is trained on CIFAR10 \cite{krizhevsky2009learning} with the hyper-parameters shown in Table \ref{tab:baseline_small_big}. The convolutional layers of the big model are initialized with pre-trained weights on ImageNet \cite{ILSVRC15} while the fully connected layers are initialized randomly. The small model had to be trained from scratch as it is an uncommon architecture. The accuracies in Table \ref{tab:baseline_small_big} serve as our baseline and we expect the accuracy of the small model after distilling to be somewhere between these two values.
+For our experiments we use VGG-16 \cite{DBLP:journals/corr/SimonyanZ14a} as the big model. For the small model all stacks of convolutional layers have been replaced by one single convolutional layer (see Table \ref{tab:network_architectures}) and the number of fully connected layers was reduced by one. The similarity between the models is by design and makes it possible to have a maximum of 6 separate links while doing the knowledge transfer. To get the knowledge we want to transfer in the first place, the big model is trained on CIFAR10 \cite{krizhevsky2009learning} with the hyper-parameters shown in Table \ref{tab:baseline_small_big}. The convolutional layers of the big model are initialized with pre-trained weights on ImageNet \cite{ILSVRC15} while the fully connected layers are initialized randomly. The small model had to be trained from scratch as it is an uncommon architecture. The accuracies in Table \ref{tab:baseline_small_big} serve as our baseline and we expect the accuracy of the small model after distilling to be somewhere between these two test accuracies.
 
 \begin{table}
 	\begin{center}
 	\begin{tabular}{|c|c|c|}
 		\hline
-		\multicolumn{3}{|c|}{Network Configurations with linkable layers} \\ \hline
-			&	VGG-16	&	VGG-7	\\ \hline
-			\hline
-		& \multicolumn{2}{c|}{input (224$\times$224 RGB image)} \\ \hline
-		link 1	&	conv3-64	&	conv3-64	\\ 
-			& 	conv3-64	&		\\ \hline
+		\multicolumn{3}{|c|}{Network configurations with linkable layers} 	\\ \hline
+				&	VGG-16		&	VGG-7									\\ \hline
+		\hline
+				& \multicolumn{2}{c|}{input (224$\times$224 RGB image)} 	\\ \hline
+		link 1	&	conv3-64	&	conv3-64								\\ 
+				& 	conv3-64	&											\\ \hline
 		
-			& \multicolumn{2}{c|}{maxpool 2$\times$2} \\ \hline
-		link 2	&	conv3-128	&	conv3-128	\\ 
-			& 	conv3-128	&		\\ \hline
+				& \multicolumn{2}{c|}{maxpool 2$\times$2} 					\\ \hline
+		link 2	&	conv3-128	&	conv3-128								\\ 
+				& 	conv3-128	&											\\ \hline
 			
-			& \multicolumn{2}{c|}{maxpool 2$\times$2} \\ \hline
-		link 3	&	conv3-256	&	conv3-256	\\ 
-			& 	conv3-256	&		\\ 
-			& 	conv3-256	&		\\ \hline
-			& \multicolumn{2}{c|}{maxpool 2$\times$2} \\ \hline
-		link 4	&	conv3-512	&	conv3-512	\\ 
-			& 	conv3-512	&		\\ 
-			& 	conv3-512	&		\\ \hline
-			& \multicolumn{2}{c|}{maxpool 2$\times$2} \\ \hline
-		link 5	&	conv3-512	&	conv3-512	\\ 
-			& 	conv3-512	&		\\ 
-			& 	conv3-512	&		\\ \hline
-			& \multicolumn{2}{c|}{maxpool 2$\times$2} \\ \hline
-		link 6	&	FC-4096	&	FC-4096	\\ 
-			& 	FC-4096	&		\\ 
-			& 	FC-10	&	FC-10	\\ \hline
-			& \multicolumn{2}{c|}{softmax} \\ \hline
+				& \multicolumn{2}{c|}{maxpool 2$\times$2} 					\\ \hline
+		link 3	&	conv3-256	&	conv3-256								\\ 
+				& 	conv3-256	&											\\ 
+				& 	conv3-256	&											\\ \hline
+				& \multicolumn{2}{c|}{maxpool 2$\times$2} 					\\ \hline
+		link 4	&	conv3-512	&	conv3-512								\\ 
+				& 	conv3-512	&											\\ 
+				& 	conv3-512	&											\\ \hline
+				& \multicolumn{2}{c|}{maxpool 2$\times$2} 					\\ \hline
+		link 5	&	conv3-512	&	conv3-512								\\ 
+				& 	conv3-512	&											\\ 
+				& 	conv3-512	&											\\ \hline
+				& \multicolumn{2}{c|}{maxpool 2$\times$2} 					\\ \hline
+		link 6	&	FC-4096		&	FC-4096									\\ 
+				& 	FC-4096		&											\\ 
+				& 	FC-10		&	FC-10									\\ \hline
+				& \multicolumn{2}{c|}{softmax} 								\\ \hline
 			
 	\end{tabular}
 	\end{center}
@@ -111,66 +131,53 @@ For our experiments we use VGG-16 \cite{DBLP:journals/corr/SimonyanZ14a} as the 
 	\begin{center}
 	\begin{tabular}{|c|c|c|}
 		\hline
-								&	small model 	&	big model	\\ \hline
-		batchsize					&	40			&	40		\\ \hline
-		momentum				&	0.9			&	0.9		\\ \hline
-		weight decay				&	0.00002		&	0.00002	\\ \hline
-		init learning rate (LR)			&	0.004		&	0.004	\\ \hline
-		epochs between LR decay 	&	10			&	10		\\ \hline
-		epochs					&	25			&	25		\\ \hline
-		train accuracy				&	84.8\%		&	84.8\%	\\ \hline
-		test accuracy				&	84.8\%		&	84.8\%	\\ \hline
+									&	Small model & Big model \\ \hline
+		Batchsize					&	40			&	FIXME	\\ \hline
+		Temperature					&	2			&	FIXME	\\ \hline
+		Momentum					&	0.9			&	FIXME	\\ \hline
+		Weight decay				&	0.01		&	FIXME	\\ \hline
+		Init learning rate (LR)		&	0.004		&	FIXME	\\ \hline
+		Epochs between LR decay 	&	10			&	FIXME	\\ \hline
+		Epochs						&	25			&	FIXME	\\ \hline
+		Train accuracy				&	99.3\%		&	FIXME	\\ \hline
+		Test accuracy				&	79.1\%		&	FIXME	\\ \hline
 	\end{tabular}
 	\end{center}
-	\caption{\textbf{Baseline Training.} Both network architectures were trained with the given parameters to have a baseline to compare our transfer 	training to. The conv. layers of the big model had pre-trained weights while the small model was trained from scratch.}
+	\caption{\textbf{Baseline Training.} Both network architectures were trained with the given parameters to have a baseline to compare our transfer training to. The conv. layers of the big model had pre-trained weights while the small model was trained from scratch.}
 	\label{tab:baseline_small_big}
 \end{table}
 
-\subsection{Loss}
-The loss function for transferring knowledge into the small model is a weighted sum of three terms:
-\begin{itemize}
-	\item ``hard" loss: cross-entropy between output and correct label at temperature $T=1$.
-	\item ``soft" loss: cross-entropy between output and prediction of big model at temperature $T$
-	\item ``intermediate" loss: sum of MSE between linked intermediate layers
-\end{itemize}
-INSERT FORMULAS HERE \\
-The third term is the new part of our approach. A theoretical advantage is that training times should be reduced, as gradients do not have to be propagated through the whole network to reach the first layers. Typical factors in the weighted sum are
-\begin{equation}
-	\text{loss} = 0.05 \cdot \text{hard} + 0.6 \cdot \text{soft} + 0.35 \cdot \text{intermediate}.
-\end{equation}
-
-
 
 \subsection{Dataset}
-We use CIFAR-10 \cite{krizhevsky2009learning} as the dataset to train both models on for all experiments. It consists of 50000 training and 10000 test RGB images of size 32$\times$32 pixels. Each image belongs to one of ten classes. To use the standard VGG architecture with these low-resolution images, they are scaled up to 224$\times$224 pixels. Each image is preprocessed by subtracting the mean RGB value, computed on the training set, from each pixel. 
+We use CIFAR-10 \cite{krizhevsky2009learning} as the dataset to train both models for all experiments. It consists of 50000 training and 10000 test RGB images of size 32$\times$32 pixels. Each image belongs to one of ten classes. To use the standard VGG architecture with these low-resolution images, they are scaled up to 224$\times$224 pixels. Each image is preprocessed by subtracting the mean RGB value, computed on the training set, from each pixel. 
  
 
 %-------------------------------------------------------------------------
 \section{Experiments}
-We used stochastic gradient descent with momentum 0.9 (CITATION NEEDED?) as an optimizer. We started with a learning rate of 0.004 and let it decay by a factor of 10 every 10 epochs for 25 epochs. This way the accuracy stopped changing significantly prior to the drops in learning rate.
+First we perform an experiment to find out what temperatures is best suited for distillation with our choice of models (results in Table \ref{tab:LL_results}). After that we compare multiple combinations of links between intermediate layers to find out if our approach can improve the knowledge transfer over normal distilling (results in Table \ref{tab:interemediate_results}). For all experiments stochstic gradient descent with momentum as a regularizer is used as an optimizer. Furthermore after every ten epochs the learning rate is decaying by a factor of 10. This way the accuracy should stop changing significantly prior to a drop in learning rate.
 
-\subsection{Temperature of soft loss}
+\subsection{Temperature of ``soft" loss}
 \begin{table}[]
 	\begin{center}
 	\begin{tabular}{|c|c|}
 		\hline
-		Temperature	&	Test set accuracy\\ \hline
-		0.6	&	76.3 \%	\\ \hline
-		1	&	76.5 \%	\\ \hline
-		1.5	&	77.0 \%	\\ \hline
-		2	&	\textbf{77.4} \%	\\ \hline
-		2.5	&	76.7 \%	\\ \hline
-		3	&	77.2 \%	\\ \hline
-		5	&	73.1 \%	\\ \hline
-		10	&	64.4 \%	\\ \hline
-		40	&	67.3 \%	\\ \hline
+		Temperature	&	Test accuracy	\\ \hline
+		0.6			&	76.3 \%			\\ \hline
+		1			&	76.5 \%			\\ \hline
+		1.5			&	77.0 \%			\\ \hline
+		2			&	\textbf{77.4} \%\\ \hline
+		2.5			&	76.7 \%			\\ \hline
+		3			&	77.2 \%			\\ \hline
+		5			&	73.1 \%			\\ \hline
+		10			&	64.4 \%			\\ \hline
+		40			&	67.3 \%			\\ \hline
 	\end{tabular}
 	\end{center}
-	\caption{\textbf{Last layer transfer results.} bla bla}
+	\caption{\textbf{Last layer transfer results.} Test accuracies after distillation using different temperatures for the softmax.}
 	\label{tab:LL_results}
 \end{table}
 
-Before adding the "intermediate" loss, we trained the model only using the transfer method from \cite{hinton2015distilling}. The relative weigth of the "soft" loss was chosen to be ten times that of the "hard" loss. We found the best temperature $ T $ to be approximately 2, see Table \ref{tab:LL_results}. This value was also used for all following experiments. The corresponding test set accuracy is 77.4\%, improving the small model baseline only slightly, by X\%.
+This experiment is done exactly like \cite{hinton2015distilling} describes the process of distillation. That means that the loss function consists of the ``hard" and ``soft" terms only. This is used to determine the best temperature to test our new approach. The relative weight of the "soft" loss was chosen to be ten times that of the "hard" loss. We found the best temperature $ T $ to be 2, see Table \ref{tab:LL_results}. The corresponding test set accuracy is 77.4\%, improving the small model baseline only slightly, by X\%.
 
 
 \subsection{Linking intermediate layers}
@@ -178,21 +185,21 @@ Before adding the "intermediate" loss, we trained the model only using the trans
 	\begin{center}
 	\begin{tabular}{|c|c|c|}
 		\hline
-		Linked layers	&	$\beta$	&	Test set accuracy\\ \hline
-		1	&	10	&	78.3\%	\\ \hline
-		2	&	10	&	80.3\%	\\ \hline
-		3	&	10	&	83.0\%	\\ \hline
-		4	&	10	&	85.6\%	\\ \hline
-		5	&	10	&	\textbf{87.9}\%	\\ \hline
-		6	&	10	&	86.1\%	\\ \hline
-		3, 4	&	10	&	84.8\%	\\ \hline
-		2, 3, 4, 5	&	10	&	87.0\%	\\ \hline
-		2, 3, 4, 5	&	40	&	\textbf{87.9}\%	\\ \hline
-		2, 3, 4, 5, 6	&	10	&	78.5\%	\\ \hline
-		1, 2, 3, 4, 5, 6	&	10	&	81.2\%	\\ \hline
+		Linked layers		&	$\beta$	&	Test set accuracy	\\ \hline
+		1					&	10		&	78.3\%				\\ \hline
+		2					&	10		&	80.3\%				\\ \hline
+		3					&	10		&	83.0\%				\\ \hline
+		4					&	10		&	85.6\%				\\ \hline
+		5					&	10		&	\textbf{87.9}\%		\\ \hline
+		%6					&	10		&	86.1\%				\\ \hline % keine gute Idee
+		3, 4				&	10		&	84.8\%				\\ \hline
+		2, 3, 4, 5			&	10		&	87.0\%				\\ \hline
+		2, 3, 4, 5			&	40		&	\textbf{87.9}\%		\\ \hline
+		2, 3, 4, 5, 6		&	10		&	78.5\%				\\ \hline
+		1, 2, 3, 4, 5, 6	&	10		&	81.2\%				\\ \hline
 	\end{tabular}
 	\end{center}
-	\caption{\textbf{Intermediate Layers transfer results.} used last layer with temperature 2 and $ \alpha = 10 $. MEINE AUSWAHL SIEHT HIER ZIEMLICH DUMM AUS.. VIELLEICHT WAS WEGLASSEN}
+	\caption{\textbf{Intermediate layers transfer results.} used last layer with temperature 2 and $ \alpha = 10 $.  FIXME: Was is $\beta$? FIXME: Wo sind die .txt results aus dieser Tabelle?}
 	\label{tab:interemediate_results}
 \end{table}
 the relative weight of the "intermediate" loss was chosen to be identical to that of the "soft" loss. When connecting multiple layers, the losses of the individual links was averaged. Table \ref{tab:interemediate_results} shows an overview of the link configurations we used, and the corresponding accuracies. First, we used one link at a time. Link 5, the last link in the convolutional part of the network, gave the best test set accuracy of 87.9\%. Using multiple intermediate layers yielded at best equally good results. But since far from all possibilities were explored, it is possible that further improvements are possible with the right choice of layers to link.

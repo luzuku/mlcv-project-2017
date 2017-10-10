@@ -21,34 +21,34 @@
 \citation{hinton2015distilling}
 \citation{hinton2015distilling}
 \citation{hinton2015distilling}
-\citation{DBLP:journals/corr/SimonyanZ14a}
-\citation{krizhevsky2009learning}
-\citation{ILSVRC15}
 \@writefile{toc}{\contentsline {section}{\numberline {1}\hskip -1em.\nobreakspace  {}Introduction}{1}{section.1}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.1}\hskip -1em.\nobreakspace  {}Distillation}{1}{subsection.1.1}}
 \newlabel{eq:softmaxtemperature}{{1}{1}{\hskip -1em.~Distillation}{equation.1.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.2}\hskip -1em.\nobreakspace  {}Loss}{1}{subsection.1.2}}
 \newlabel{eq:lossfactors}{{2}{1}{\hskip -1em.~Loss}{equation.1.2}{}}
+\citation{DBLP:journals/corr/SimonyanZ14a}
+\citation{krizhevsky2009learning}
+\citation{ILSVRC15}
 \citation{krizhevsky2009learning}
 \citation{hinton2015distilling}
-\newlabel{tab:network_architectures}{{1.3}{2}{\hskip -1em.~Models}{subsection.1.3}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces \textbf  {Network configurations.} The convolutional layers are denoted as conv(\textit  {kernel size})-(\textit  {number of channels)} and the fully connected layers as FC-(\textit  {number of output channels}). ReLu units are omitted for brevity. The leftmost column gives the links between both networks that are added to the loss function.}}{2}{table.1}}
+\citation{hinton2015distilling}
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.3}\hskip -1em.\nobreakspace  {}Models}{2}{subsection.1.3}}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces \textbf  {Baseline Training.} Both network architectures were trained with the given parameters to have a baseline to compare our transfer training to. The conv. layers of the big model had pre-trained weights while the small model was trained from scratch.}}{2}{table.2}}
-\newlabel{tab:baseline_small_big}{{2}{2}{\textbf {Baseline Training.} Both network architectures were trained with the given parameters to have a baseline to compare our transfer training to. The conv. layers of the big model had pre-trained weights while the small model was trained from scratch}{table.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.4}\hskip -1em.\nobreakspace  {}Dataset}{2}{subsection.1.4}}
 \@writefile{toc}{\contentsline {section}{\numberline {2}\hskip -1em.\nobreakspace  {}Experiments}{2}{section.2}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.1}\hskip -1em.\nobreakspace  {}Temperature of ``soft" loss}{2}{subsection.2.1}}
+\newlabel{tab:network_architectures}{{1.3}{2}{\hskip -1em.~Models}{subsection.1.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces \textbf  {Network configurations.} The convolutional layers are denoted as conv(\textit  {kernel size})-(\textit  {number of channels)} and the fully connected layers as FC-(\textit  {number of output channels}). ReLu units are omitted for brevity. The leftmost column gives the links between both networks that are added to the loss function.}}{2}{table.1}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces \textbf  {Baseline Training.} Both network architectures were trained with the given parameters to have a baseline to compare our transfer training to. The conv. layers of the big model had pre-trained weights while the small model was trained from scratch.}}{2}{table.2}}
+\newlabel{tab:baseline_small_big}{{2}{2}{\textbf {Baseline Training.} Both network architectures were trained with the given parameters to have a baseline to compare our transfer training to. The conv. layers of the big model had pre-trained weights while the small model was trained from scratch}{table.2}{}}
 \bibstyle{ieee}
 \bibdata{egbib}
 \bibcite{hinton2015distilling}{1}
 \bibcite{krizhevsky2009learning}{2}
 \bibcite{ILSVRC15}{3}
 \bibcite{DBLP:journals/corr/SimonyanZ14a}{4}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces \textbf  {Last layer transfer results.} Test accuracies after distillation using different temperatures for the softmax.}}{3}{table.3}}
-\newlabel{tab:LL_results}{{3}{3}{\textbf {Last layer transfer results.} Test accuracies after distillation using different temperatures for the softmax}{table.3}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces \textbf  {Intermediate layers transfer results.} used last layer with temperature 2 and $ \alpha = 10 $. FIXME: Was is $\beta $? FIXME: Wo sind die .txt results aus dieser Tabelle?}}{3}{table.4}}
-\newlabel{tab:interemediate_results}{{4}{3}{\textbf {Intermediate layers transfer results.} used last layer with temperature 2 and $ \alpha = 10 $. FIXME: Was is $\beta $? FIXME: Wo sind die .txt results aus dieser Tabelle?}{table.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces \textbf  {Distillation using only ``hard" and ``soft" loss.} Test accuracies after distillation using different temperatures for the softmax.}}{3}{table.3}}
+\newlabel{tab:LL_results}{{3}{3}{\textbf {Distillation using only ``hard" and ``soft" loss.} Test accuracies after distillation using different temperatures for the softmax}{table.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces \textbf  {Distillation with added ``intermediate" loss.} Test accuracies for different sets of links between intermediate layers ($T=2$).}}{3}{table.4}}
+\newlabel{tab:interemediate_results}{{4}{3}{\textbf {Distillation with added ``intermediate" loss.} Test accuracies for different sets of links between intermediate layers ($T=2$)}{table.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2}\hskip -1em.\nobreakspace  {}Linking intermediate layers}{3}{subsection.2.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}\hskip -1em.\nobreakspace  {}Evolution of loss contributions}{3}{subsection.2.3}}
 \@writefile{toc}{\contentsline {section}{\numberline {3}\hskip -1em.\nobreakspace  {}Discussion}{3}{section.3}}

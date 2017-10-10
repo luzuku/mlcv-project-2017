@@ -75,6 +75,7 @@ The loss function for transferring knowledge into the small model is a weighted 
 	\item ``intermediate" loss: sum of MSE between linked intermediate layers
 \end{itemize}
 FIXME: Insert formulas here \\
+FIXME: Explain intermediate loss average \\
 The third term is the new part of our approach. An anticipated advantage is that training times should be reduced, as gradients do not have to be propagated through the whole network to reach the first layers. Typical factors in the weighted sum are
 \begin{equation}
 	\text{loss} = 1 \cdot \text{hard} + 10 \cdot \text{soft} + 10 \cdot \text{intermediate}.
@@ -154,7 +155,7 @@ We use CIFAR-10 \cite{krizhevsky2009learning} as the dataset to train both model
 
 %-------------------------------------------------------------------------
 \section{Experiments}
-First we perform an experiment to find out what temperatures is best suited for distillation with our choice of models (results in Table \ref{tab:LL_results}). After that we compare multiple combinations of links between intermediate layers to find out if our approach can improve the knowledge transfer over normal distilling (results in Table \ref{tab:interemediate_results}). For all experiments stochstic gradient descent with momentum as a regularizer is used as an optimizer. Furthermore after every ten epochs the learning rate is decaying by a factor of 10. This way the accuracy should stop changing significantly prior to a drop in learning rate.
+First we perform an experiment to find out what temperatures is best suited for distillation with our choice of models (results in Table \ref{tab:LL_results}). Next we compare multiple combinations of links between intermediate layers to find out if our approach can improve the knowledge transfer over normal distilling (results in Table \ref{tab:interemediate_results}). For all experiments stochstic gradient descent with momentum as a regularizer is used as an optimizer. Furthermore after every ten epochs the learning rate is decaying by a factor of 10. This way the accuracy should stop changing significantly prior to a drop in learning rate.
 
 \subsection{Temperature of ``soft" loss}
 \begin{table}[]
@@ -173,43 +174,44 @@ First we perform an experiment to find out what temperatures is best suited for 
 		40			&	67.3 \%			\\ \hline
 	\end{tabular}
 	\end{center}
-	\caption{\textbf{Last layer transfer results.} Test accuracies after distillation using different temperatures for the softmax.}
+	\caption{\textbf{Distillation using only ``hard" and ``soft" loss.} Test accuracies after distillation using different temperatures for the softmax.}
 	\label{tab:LL_results}
 \end{table}
 
-This experiment is done exactly like \cite{hinton2015distilling} describes the process of distillation. That means that the loss function consists of the ``hard" and ``soft" terms only. This is used to determine the best temperature to test our new approach. The relative weight of the "soft" loss was chosen to be ten times that of the "hard" loss. We found the best temperature $ T $ to be 2, see Table \ref{tab:LL_results}. The corresponding test set accuracy is 77.4\%, improving the small model baseline only slightly, by X\%.
-
+This experiment is done exactly like \cite{hinton2015distilling} describes the process of distillation. That means that the loss function consists of the ``hard" and ``soft" terms only. This is used to determine the best temperature to test our new approach. The relative weight of the "soft" loss was chosen to be ten times that of the "hard" loss. We found the best temperature $ T $ to be 2, see Table \ref{tab:LL_results}. The corresponding test accuracy is only 77.4\%, which is less than our baseline of 79.1\% for the small model. This is due to a lack of further experiments. Optimizing these numbers takes a lot of time and especially compute time. We think that a missing regularization is the main cause and that normally this accuracy should be a little higher than our baseline. This would also be consistent with the findings in \cite{hinton2015distilling}. It should be noted that the goal of determining the best temperature has still been achieved and we can proceed with the main experiment.
 
 \subsection{Linking intermediate layers}
+
 \begin{table}[]
 	\begin{center}
 	\begin{tabular}{|c|c|c|}
 		\hline
-		Linked layers		&	$\beta$	&	Test set accuracy	\\ \hline
-		1					&	10		&	78.3\%				\\ \hline
-		2					&	10		&	80.3\%				\\ \hline
-		3					&	10		&	83.0\%				\\ \hline
-		4					&	10		&	85.6\%				\\ \hline
-		5					&	10		&	\textbf{87.9}\%		\\ \hline
-		%6					&	10		&	86.1\%				\\ \hline % keine gute Idee
-		3, 4				&	10		&	84.8\%				\\ \hline
-		2, 3, 4, 5			&	10		&	87.0\%				\\ \hline
-		2, 3, 4, 5			&	40		&	\textbf{87.9}\%		\\ \hline
-		2, 3, 4, 5, 6		&	10		&	78.5\%				\\ \hline
-		1, 2, 3, 4, 5, 6	&	10		&	81.2\%				\\ \hline
+		Linked layers		&	Test accuracy		\\ \hline
+		1					&	78.3\%				\\ \hline
+		2					&	80.3\%				\\ \hline
+		3					&	83.0\%				\\ \hline
+		4					&	85.6\%				\\ \hline
+		5					&	\textbf{87.9}\%		\\ \hline
+		%6					&	86.1\%				\\ \hline % keine gute Idee
+		3, 4				&	84.8\%				\\ \hline
+		2, 3, 4, 5			&	87.0\%				\\ \hline
+		2, 3, 4, 5			&	\textbf{87.9}\%		\\ \hline
+		2, 3, 4, 5, 6		&	78.5\%				\\ \hline
+		1, 2, 3, 4, 5, 6	&	81.2\%				\\ \hline
 	\end{tabular}
 	\end{center}
-	\caption{\textbf{Intermediate layers transfer results.} used last layer with temperature 2 and $ \alpha = 10 $.  FIXME: Was is $\beta$? FIXME: Wo sind die .txt results aus dieser Tabelle?}
+	\caption{\textbf{Distillation with added ``intermediate" loss.} Test accuracies for different sets of links between intermediate layers ($T=2$).}
 	\label{tab:interemediate_results}
 \end{table}
-the relative weight of the "intermediate" loss was chosen to be identical to that of the "soft" loss. When connecting multiple layers, the losses of the individual links was averaged. Table \ref{tab:interemediate_results} shows an overview of the link configurations we used, and the corresponding accuracies. First, we used one link at a time. Link 5, the last link in the convolutional part of the network, gave the best test set accuracy of 87.9\%. Using multiple intermediate layers yielded at best equally good results. But since far from all possibilities were explored, it is possible that further improvements are possible with the right choice of layers to link.
+This is the main experiment of this paper. We want to investigate if adding links between intermediate layers while distilling knowledge between models can improve the transfer and have an impact on test accuracies. If this is the case we also want to compare different sets of intermediate links. The results can be seen in Table \ref{tab:interemediate_results}. The relative weight of the "intermediate" loss was chosen to be identical to that of the "soft" loss as we think it should be just as important for the transfer. However to make results with different numbers of links comparable the ``intermediate" loss is always an average over all losses that result from links between intermediate layers. If we would not have implemented some kind of mechanism to guarantee a more or less consistent loss, it could have been the case that more links would lead to a difference in magnitude of the ``intermediate" loss.\\
+First, we use one link at a time. Link 5, the last link in the convolutional part of the network, has the best test accuracy of 87.9\%. This is a 13\% improvement over our baseline of 79.1\%. Using multiple links between intermediate layers yielded at best equally good results. But since far from all possibilities were explored, it is possible that further improvements could be achieved with the right choice of layers to link.
 
-\subsection{Evolution of loss contributions}
+%\subsection{Evolution of loss contributions}
 
-CANT SAY ANYTHING ABOUT SOFT LOSS WITHOUT FURTHER EXPERIMENT.. 
-"hard" loss drops fast on train set, but not on test set (duh..)
-"intermediate" loss: fast drop in first epochs, then converges to constant value. remarkable: almost identical on train and test set --> good regularization
-(would be interesting to try on very small train set..)
+%CANT SAY ANYTHING ABOUT SOFT LOSS WITHOUT FURTHER EXPERIMENT.. 
+%"hard" loss drops fast on train set, but not on test set (duh..)
+%"intermediate" loss: fast drop in first epochs, then converges to constant value. remarkable: almost identical on train and test set --> good regularization
+%(would be interesting to try on very small train set..)
 
 
 \section{Discussion}

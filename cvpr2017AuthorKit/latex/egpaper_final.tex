@@ -133,15 +133,14 @@ For our experiments we use VGG-16 \cite{DBLP:journals/corr/SimonyanZ14a} as the 
 	\begin{tabular}{|c|c|c|}
 		\hline
 									&	Small model & Big model \\ \hline
-		Batchsize					&	40			&	FIXME	\\ \hline
-		Temperature					&	2			&	FIXME	\\ \hline
-		Momentum					&	0.9			&	FIXME	\\ \hline
-		Weight decay				&	0.01		&	FIXME	\\ \hline
-		Init learning rate (LR)		&	0.004		&	FIXME	\\ \hline
-		Epochs between LR decay 	&	10			&	FIXME	\\ \hline
-		Epochs						&	25			&	FIXME	\\ \hline
-		Train accuracy				&	99.3\%		&	FIXME	\\ \hline
-		Test accuracy				&	79.1\%		&	FIXME	\\ \hline
+		Batchsize					&	40			&	40		\\ \hline
+		Momentum					&	0.9			&	.9		\\ \hline
+		Weight decay				&	0.01		&	0.0002	\\ \hline
+		Init learning rate (LR)		&	0.004		&	0.004	\\ \hline
+		Epochs between LR decay 	&	10			&	25		\\ \hline
+		Epochs						&	25			&	100		\\ \hline
+		Train accuracy				&	99.3\%		&	100.0\%	\\ \hline
+		Test accuracy				&	79.1\%		&	91.4\%	\\ \hline
 	\end{tabular}
 	\end{center}
 	\caption{\textbf{Baseline Training.} Both network architectures were trained with the given parameters to have a baseline to compare our transfer training to. The conv. layers of the big model had pre-trained weights while the small model was trained from scratch.}

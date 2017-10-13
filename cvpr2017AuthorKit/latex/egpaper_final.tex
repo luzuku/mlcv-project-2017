@@ -214,16 +214,17 @@ First, we use one link at a time. Link 5, the last link in the convolutional par
 
 
 \section{Discussion}
-This is the discussion. We are great!
-
-\begin{itemize}
-	\item good results, intermediate much better than only last
-	\item choice of hyperparameters partially arbitrary: relative weights of the losses, regularization missing, choice of layers to use for transfer
-	\item longer training could lead to further improvements, intermediate loss did not stop declining (though quite slow $ \rightarrow $ limit for us)
-	\item decent results are achieved much faster (fewer epochs) compared to hard loss only. reason: "shorter way" to first layers
-	\item potential advantages on small training sets
-	\item overall: good initial results, further investigation necessary (other datasets, architectures, better tuning of hyperparameters)
-\end{itemize}
+This paper investigated an extension of the process called distilliation originally proposed by Hinton et al.\cite{hinton2015distilling}. Distilliation is a method to transfer knowledge from an already trained model to a new one that requires less time and data than training from scratch. Ideally the new model is similar in architecture but with fewer layers to make it faster at runtime than the already available trained model. Distilling knowledge works by linking the softmax layers of both networks by calculating their cross-entropy, making the ``knowledge" of relationships inbetween classes an additional target to the normal onehot encoded label. We extended this idea by adding links between different intermediate layers but using the MSE instead, because this compares activations and not probability distributions.\\
+For our experiments we used the popular VGG-16 and a slimmed-down version with each stack of layers being reduced to one, effectively being ``VGG-7" (see Table \ref{tab:network_architectures}). From our comparison of different temperatures $T$ for calculating the softmax (Equation \ref{eq:softmaxtemperature}) in Table \ref{tab:LL_results}, we decided to use $T=2$ for comparing the effectiveness between different sets of intermediate links. The resulting test accuracies can be seen in Table \ref{tab:interemediate_results}. From this we conclude that adding links between intermediate layers while doing knowledge distilliation improves the transfer significantly. Not only is the training time reduced by the fact that it doesn't take multiple epochs for the gradient to reach layers in the front of the model, but the test accuracies on CIFAR-10 \cite{krizhevsky2009learning} improved by 13\% to 87.9\% over our baseline of 79.1\% when training from scratch. While doing these experiments we observerd a partial invariance to the choice of hyperparameters for training, leading us to believe that additional links might also make the distillation more robust.\\
+Given the scope and our investement of time in this project, we think that there is still room to improve and investigate. Although our results look promising we propose further experiments with other architectures and other datasets. It might also be possible that our tuning of the hyperparameters is off and the observed invariance is not real. With this is in mind, we think that knowledge distillation is an idea worth investigating further, especially considering the discrepancy between the ever growing size of top-performing models and the spread of machine learning into small handheld devices. If at least a few future AI sercives shouldn't be always be dependent on a fast internet connection, knowledge distillation into feasible models might be a necessity.
+%\begin{itemize}
+%	\item good results, intermediate much better than only last
+%	\item choice of hyperparameters partially arbitrary: relative weights of the losses, regularization missing, choice of layers to use for transfer
+%	\item longer training could lead to further improvements, intermediate loss did not stop declining (though quite slow $ \rightarrow $ limit for us)
+%	\item decent results are achieved much faster (fewer epochs) compared to hard loss only. reason: "shorter way" to first layers
+%	\item potential advantages on small training sets
+%	\item overall: good initial results, further investigation necessary (other datasets, architectures, better tuning of hyperparameters)
+%\end{itemize}
 
 {\small
 \bibliographystyle{ieee}

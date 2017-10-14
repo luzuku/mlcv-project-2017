@@ -62,27 +62,40 @@ The idea of transferring knowledge between different architectures of neural net
 As it is a prerequisite for distilling to have an already trained model, to make this process worthwhile the trained model should have some kind of disadvantage at inference because distilling allows to transfer knowledge to a smaller model better suited for inference. And as shown in \cite{hinton2015distilling} distillation also works with a fraction of the original training set as well as unlabeled data because the trained model should produce reliable predictions even for unseen data.
 To transfer knowledge an additional term to the loss function is introduced that links the softmax layers of both networks by calculating their cross entropy. This way the smaller model will not only have to produce the correct label but also the relationship between classes of lower probability. The softmax also has an added temperature dependency for training
 \begin{equation}
-	p_i = \frac{\exp(z_i / T)}{\sum_j \exp(z_j/T)}
+	q_i = \frac{\exp(z_i / T)}{\sum_j \exp(z_j/T)}
 	\label{eq:softmaxtemperature}
 \end{equation}
-with logits $z_i$, class probabilities $p_i$ and temperature $T$, which whould normally be set to 1. Using a higher value for $T$ produces a softer probability distribution and should force the smaller model to optimize better for intermediate relationships between classes. It was shown in \cite{hinton2015distilling} that this alone serves as a very good knowledge transfer tool. We will investigate how adding a selection of other links while training will influence the distillation. For an overview of the proposed links see Table \ref{tab:network_architectures}.
+with logits $z_i$, predicted class probabilities $q_i$ and temperature $T$, which whould normally be set to 1. Using a higher value for $T$ produces a softer probability distribution and should force the smaller model to optimize better for intermediate relationships between classes. It was shown in \cite{hinton2015distilling} that this alone serves as a very good knowledge transfer tool. We will investigate how adding a selection of other links while training will influence the distillation. For an overview of the proposed links see Table \ref{tab:network_architectures}.
 
 \subsection{Loss}
 The loss function for transferring knowledge into the small model is a weighted sum of three terms:
+
 \begin{itemize}
-	\item ``hard" loss: cross-entropy between output and correct label at temperature $T=1$.
+	\item ``hard" loss: cross-entropy between output and correct label at temperature $T=1$
+		\begin{equation}
+			\text{hard} = -\sum_i \text{label}_i(x) \log \text{small}_i(x)
+			\label{eq:hardloss}
+		\end{equation}
 	\item ``soft" loss: cross-entropy between output and prediction of big model at temperature $T$
+		\begin{equation}
+			\text{soft} = -\sum_i \text{big}_i(x) \log \text{small}_i(x)
+			\label{eq:softloss}
+		\end{equation}
 	\item ``intermediate" loss: sum of MSE between linked intermediate layers
+		\begin{equation}
+			\text{intermediate} = \frac{1}{N} \sum_i^N \text{MSE}(\text{link}_i)
+			\label{eq:intermediateloss}
+		\end{equation}
 \end{itemize}
-FIXME: Insert formulas here \\
-FIXME: Explain intermediate loss average \\
-The third term is the new part of our approach. An anticipated advantage is that training times should be reduced, as gradients do not have to be propagated through the whole network to reach the first layers. Typical factors in the weighted sum are
+
+The third term is the new part of our approach. The ``intermediate" loss averages the MSE over all links that were selected. With this we make sure that the magnitude of the loss stays consistent between experiments with different numbers of links. An anticipated advantage is that training times should be reduced, as gradients do not have to be propagated through the whole network to reach the first layers. Typical factors in the weighted sum are
+
 \begin{equation}
-	\text{loss} = 1 \cdot \text{hard} + 10 \cdot \text{soft} + 10 \cdot \text{intermediate}.
-	\label{eq:lossfactors}
+	\text{total loss} = \text{hard} + 10 \cdot \text{soft} + 10 \cdot \text{intermediate}
+	\label{eq:totalloss}
 \end{equation}
 
-The main contribution comes from the ``soft" loss and the ``hard" loss while still significantly improving distillation contributes much less. This is also consistent with the ideas in \cite{hinton2015distilling}. We would place the importance of the ``intermediate" loss somewhere between these two which is relfected in Equation \ref{eq:lossfactors}.
+The main contributions come equally from ``soft"  and ``intermediate" loss. While still significantly improving distillation the ``hard" loss contribution is much less. This is also consistent with the ideas in \cite{hinton2015distilling}. We would place the importance of the ``intermediate" loss somewhere between these two which is relfected in Equation \ref{eq:lossfactors}.
 
 %-------------------------------------------------------------------------
 \subsection{Models}
